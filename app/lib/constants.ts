@@ -51,3 +51,22 @@ export const STT_LANGUAGE_LIST = [
   { label: "Ukrainian", value: "uk", key: "uk" },
   { label: "Vietnamese", value: "vi", key: "vi" },
 ];
+
+export const DIALOGUE_SCRIPTS = [
+  {
+    label: "Greeting",
+    script: [
+      "Hola, soy tu asistente virtual.",
+      "¿En qué puedo ayudarte hoy?",
+      "Estoy listo para responder tus preguntas.",
+    ].join("\n"),
+  },
+  {
+    label: "Despedida",
+    script: [
+      "Ha sido un placer hablar contigo.",
+      "Gracias por tu tiempo.",
+      "Hasta luego!",
+    ].join("\n"),
+  },
+];
