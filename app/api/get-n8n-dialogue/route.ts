@@ -6,12 +6,17 @@ export async function GET() {
       throw new Error("N8N webhook url missing from env");
     }
     const res = await fetch(N8N_WEBHOOK_URL);
+    const json = await res.text();
+
     if (!res.ok) {
-      throw new Error(`Failed to fetch from n8n: ${res.status}`);
+      console.error(`Failed request to n8n with status ${res.status}`);
+      return new Response(json || "Failed to fetch from n8n", {
+        status: res.status,
+        headers: { "Content-Type": "text/plain" },
+      });
     }
-    const data = await res.json();
-    // Expect data to have { script: string, label?: string }
-    return new Response(JSON.stringify(data), {
+
+    return new Response(json, {
       status: 200,
       headers: { "Content-Type": "application/json" },
     });
