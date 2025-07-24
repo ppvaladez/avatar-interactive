@@ -5,11 +5,30 @@ import { Select } from "../Select";
 import { useTextChat } from "../logic/useTextChat";
 import { DIALOGUE_SCRIPTS } from "@/app/lib/constants";
 
+async function fetchN8NDialogue() {
+  const res = await fetch("/api/get-n8n-dialogue");
+  if (!res.ok) {
+    throw new Error("Failed to load dialogue");
+  }
+  return await res.json();
+}
+
 export const DialoguePlayer: React.FC = () => {
   const { repeatMessageSync } = useTextChat();
   const [dialogue, setDialogue] = useState("");
   const [isPlaying, setIsPlaying] = useState(false);
   const [selectedScript, setSelectedScript] = useState<string | null>(null);
+
+  const loadFromN8n = async () => {
+    try {
+      const data = await fetchN8NDialogue();
+      if (data.script) {
+        loadScript(data.script, data.label ?? "n8n");
+      }
+    } catch (err) {
+      console.error(err);
+    }
+  };
 
   const loadScript = (script: string, label: string) => {
     setSelectedScript(label);
@@ -37,6 +56,7 @@ export const DialoguePlayer: React.FC = () => {
         value={selectedScript}
         placeholder="Choose a script"
       />
+      <Button onClick={loadFromN8n}>Load from n8n</Button>
       <textarea
         className="w-full text-white text-sm bg-zinc-700 p-2 rounded-lg"
         placeholder="Enter dialogue, one line per message"
