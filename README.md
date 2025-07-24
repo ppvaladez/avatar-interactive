@@ -20,8 +20,9 @@ Feel free to play around with the existing code and please leave any feedback fo
    You can retrieve either the API Key by logging in to HeyGen and navigating to this page in your settings: [https://app.heygen.com/settings?from=&nav=Subscriptions%20%26%20API]. 
 
 5. (Optional) If you would like to use the OpenAI features, enter your OpenAI Api Key in the `.env` file.
+6. Provide the `N8N_WEBHOOK_URL` in `.env` pointing to your n8n workflow if you want to load dialogue scripts automatically.
 
-6. Run `npm run dev`
+7. Run `npm run dev`
 
 ### Starting sessions
 
