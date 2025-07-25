@@ -5,8 +5,9 @@ export async function GET() {
     if (!N8N_WEBHOOK_URL) {
       throw new Error("N8N webhook url missing from env");
     }
-    const res = await fetch(N8N_WEBHOOK_URL);
-    const json = await res.text();
+    const res = await fetch(N8N_WEBHOOK_URL, { method: "GET" });
+    const json = await res.json();
+    console.log(json);
 
     if (!res.ok) {
       console.error(`Failed request to n8n with status ${res.status}`);
