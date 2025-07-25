@@ -6,6 +6,8 @@ export async function POST() {
       throw new Error("API key is missing from .env");
     }
     const baseApiUrl = process.env.NEXT_PUBLIC_BASE_API_URL;
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 30000); // 30 segundos
 
     const res = await fetch(`${baseApiUrl}/v1/streaming.create_token`, {
       method: "POST",
@@ -15,7 +17,7 @@ export async function POST() {
     });
 
     const data = await res.json();
-
+    clearTimeout(timeoutId);
     return new Response(data.data.token, {
       status: 200,
     });
