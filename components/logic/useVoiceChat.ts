@@ -29,19 +29,25 @@ export const useVoiceChat = () => {
   const dialogueRef = useRef<string[]>([]);
   const dialogueIndexRef = useRef(0);
 
-  const playNextLine = useCallback(async () => {
-    const line = dialogueRef.current[dialogueIndexRef.current];
-    if (!line) return;
-    await avatarRef.current?.speak({
-      text: line,
-      taskType: TaskType.TALK,
-      taskMode: TaskMode.ASYNC,
-    });
-    dialogueIndexRef.current += 1;
-  }, [avatarRef]);
+  const playNextLine = useCallback(
+    async (handleEnd: () => void) => {
+      const line = dialogueRef.current[dialogueIndexRef.current];
+      if (!line) {
+        avatarRef.current?.off(StreamingEvents.USER_END_MESSAGE, handleEnd);
+        return;
+      }
+      await avatarRef.current?.speak({
+        text: line,
+        taskType: TaskType.TALK,
+        taskMode: TaskMode.ASYNC,
+      });
+      dialogueIndexRef.current += 1;
+    },
+    [avatarRef],
+  );
 
   const handleUserEnd = useCallback(() => {
-    void playNextLine();
+    void playNextLine(handleUserEnd);
   }, [playNextLine]);
 
   const startVoiceChat = useCallback(
@@ -71,7 +77,6 @@ export const useVoiceChat = () => {
           avatarRef.current.unmuteInputAudio();
         }
 
-        await playNextLine();
         setIsVoiceChatActive(true);
         setIsMuted(!!isInputAudioMuted);
       } catch (err) {
