@@ -22,7 +22,9 @@ export const DialoguePlayer: React.FC = () => {
   const loadFromN8n = async () => {
     try {
       const data = await fetchN8NDialogue();
-      if (data.script) {
+      if (Array.isArray(data.dialogue)) {
+        loadScript(data.dialogue.join("\n"), data.label ?? "n8n");
+      } else if (data.script) {
         loadScript(data.script, data.label ?? "n8n");
       }
     } catch (err) {
