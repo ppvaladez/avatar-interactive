@@ -6,6 +6,9 @@ export async function POST() {
       throw new Error("API key is missing from .env");
     }
     const baseApiUrl = process.env.NEXT_PUBLIC_BASE_API_URL;
+    if (!baseApiUrl) {
+      throw new Error("Base API URL is missing from .env");
+    }
 
     const res = await fetch(`${baseApiUrl}/v1/streaming.create_token`, {
       method: "POST",
@@ -13,6 +16,11 @@ export async function POST() {
         "x-api-key": HEYGEN_API_KEY,
       },
     });
+
+    if (!res.ok) {
+      const errorText = await res.text();
+      throw new Error(`API responded with ${res.status}: ${errorText}`);
+    }
 
     const data = await res.json();
 
