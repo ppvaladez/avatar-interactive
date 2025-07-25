@@ -16,6 +16,7 @@ import { AvatarVideo } from "./AvatarSession/AvatarVideo";
 import { useStreamingAvatarSession } from "./logic/useStreamingAvatarSession";
 import { AvatarControls } from "./AvatarSession/AvatarControls";
 import { useVoiceChat } from "./logic/useVoiceChat";
+import { useTextChat } from "./logic/useTextChat";
 import { StreamingAvatarProvider, StreamingAvatarSessionState } from "./logic";
 import { LoadingIcon } from "./Icons";
 import { MessageHistory } from "./AvatarSession/MessageHistory";
@@ -42,6 +43,7 @@ function InteractiveAvatar() {
   const { initAvatar, startAvatar, stopAvatar, sessionState, stream } =
     useStreamingAvatarSession();
   const { startVoiceChat } = useVoiceChat();
+  const { repeatMessageSync } = useTextChat();
 
   const [config, setConfig] = useState<StartAvatarRequest>(DEFAULT_CONFIG);
 
@@ -62,6 +64,30 @@ function InteractiveAvatar() {
       throw error;
     }
   }
+
+  async function fetchN8NDialogue() {
+    const res = await fetch("/api/get-n8n-dialogue");
+    if (!res.ok) {
+      throw new Error("Failed to load dialogue");
+    }
+    return await res.json();
+  }
+
+  const playN8nDialogue = useMemoizedFn(async () => {
+    try {
+      const data = await fetchN8NDialogue();
+      const lines = Array.isArray(data.dialogue)
+        ? data.dialogue
+        : data.script?.split("\n") ?? [];
+      for (const line of lines) {
+        const text = line.trim();
+        if (!text) continue;
+        await repeatMessageSync(text);
+      }
+    } catch (err) {
+      console.error(err);
+    }
+  });
 
   const startSessionV2 = useMemoizedFn(async (isVoiceChat: boolean) => {
     try {
@@ -103,6 +129,7 @@ function InteractiveAvatar() {
 
       if (isVoiceChat) {
         await startVoiceChat();
+        await playN8nDialogue();
       }
     } catch (error) {
       console.error("Error starting avatar session:", error);
