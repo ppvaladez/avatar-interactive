@@ -40,8 +40,14 @@ const DEFAULT_CONFIG: StartAvatarRequest = {
 };
 
 function InteractiveAvatar() {
-  const { initAvatar, startAvatar, stopAvatar, sessionState, stream } =
-    useStreamingAvatarSession();
+  const {
+    initAvatar,
+    startAvatar,
+    stopAvatar,
+    sessionState,
+    stream,
+    avatarRef,
+  } = useStreamingAvatarSession();
   const { startVoiceChat } = useVoiceChat();
   const { repeatMessageSync } = useTextChat();
 
@@ -72,6 +78,42 @@ function InteractiveAvatar() {
     }
     return await res.json();
   }
+
+  const [n8nLines, setN8nLines] = useState<string[]>([]);
+  const currentLineRef = useRef(0);
+
+  const speakNextLine = useMemoizedFn(async () => {
+    if (currentLineRef.current >= n8nLines.length) {
+      avatarRef.current?.off(StreamingEvents.USER_END_MESSAGE, handleUserEnd);
+      return;
+    }
+    const text = n8nLines[currentLineRef.current].trim();
+    currentLineRef.current += 1;
+    if (text) {
+      await repeatMessageSync(text);
+    }
+  });
+
+  const handleUserEnd = useMemoizedFn(async () => {
+    await speakNextLine();
+  });
+
+  const startN8nDialogue = useMemoizedFn(async () => {
+    try {
+      const data = await fetchN8NDialogue();
+      const lines = Array.isArray(data.dialogue)
+        ? data.dialogue
+        : data.script?.split("\n") ?? [];
+      setN8nLines(lines);
+      currentLineRef.current = 0;
+      if (lines.length > 0) {
+        avatarRef.current?.on(StreamingEvents.USER_END_MESSAGE, handleUserEnd);
+        await speakNextLine();
+      }
+    } catch (err) {
+      console.error(err);
+    }
+  });
 
   const playN8nDialogue = useMemoizedFn(async () => {
     try {
@@ -129,7 +171,7 @@ function InteractiveAvatar() {
 
       if (isVoiceChat) {
         await startVoiceChat();
-        await playN8nDialogue();
+        await startN8nDialogue();
       }
     } catch (error) {
       console.error("Error starting avatar session:", error);
@@ -138,6 +180,7 @@ function InteractiveAvatar() {
 
   useUnmount(() => {
     stopAvatar();
+    avatarRef.current?.off(StreamingEvents.USER_END_MESSAGE, handleUserEnd);
   });
 
   useEffect(() => {
