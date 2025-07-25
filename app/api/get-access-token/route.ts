@@ -27,11 +27,19 @@ export async function POST() {
     return new Response(data.data.token, {
       status: 200,
     });
-  } catch (error) {
+  } catch (error: unknown) {
     console.error("Error retrieving access token:", error);
 
-    return new Response("Failed to retrieve access token", {
-      status: 500,
-    });
+    let message = "Failed to retrieve access token";
+    if (typeof error === "object" && error) {
+      const err = error as any;
+      if (err.cause?.code === "UND_ERR_CONNECT_TIMEOUT") {
+        message = "Connection to HeyGen API timed out";
+      } else if ("message" in err) {
+        message = err.message;
+      }
+    }
+
+    return new Response(message, { status: 500 });
   }
 }
