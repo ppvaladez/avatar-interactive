@@ -3,6 +3,7 @@ import StreamingAvatar, {
   StreamingTalkingMessageEvent,
   UserTalkingMessageEvent,
 } from "@heygen/streaming-avatar";
+import { sendMessageToN8n } from "@/app/lib/n8n";
 import React, { useRef, useState } from "react";
 
 export enum StreamingAvatarSessionState {
@@ -123,6 +124,7 @@ const useStreamingAvatarVoiceChatState = () => {
 
 const useStreamingAvatarMessageState = () => {
   const [messages, setMessages] = useState<Message[]>([]);
+  const messagesRef = useRef<Message[]>([]);
   const currentSenderRef = useRef<MessageSender | null>(null);
 
   const handleUserTalkingMessage = ({
@@ -131,23 +133,32 @@ const useStreamingAvatarMessageState = () => {
     detail: UserTalkingMessageEvent;
   }) => {
     if (currentSenderRef.current === MessageSender.CLIENT) {
-      setMessages((prev) => [
-        ...prev.slice(0, -1),
-        {
-          ...prev[prev.length - 1],
-          content: [prev[prev.length - 1].content, detail.message].join(""),
-        },
-      ]);
+      setMessages((prev) => {
+        const updated = [
+          ...prev.slice(0, -1),
+          {
+            ...prev[prev.length - 1],
+            content: [prev[prev.length - 1].content, detail.message].join(""),
+          },
+        ];
+        messagesRef.current = updated;
+        return updated;
+      });
+      sendMessageToN8n(detail.message, MessageSender.CLIENT);
     } else {
       currentSenderRef.current = MessageSender.CLIENT;
-      setMessages((prev) => [
-        ...prev,
-        {
-          id: Date.now().toString(),
-          sender: MessageSender.CLIENT,
-          content: detail.message,
-        },
-      ]);
+      setMessages((prev) => {
+        const updated = [
+          ...prev,
+          {
+            id: Date.now().toString(),
+            sender: MessageSender.CLIENT,
+            content: detail.message,
+          },
+        ];
+        messagesRef.current = updated;
+        return updated;
+      });
     }
   };
 
@@ -157,27 +168,39 @@ const useStreamingAvatarMessageState = () => {
     detail: StreamingTalkingMessageEvent;
   }) => {
     if (currentSenderRef.current === MessageSender.AVATAR) {
-      setMessages((prev) => [
-        ...prev.slice(0, -1),
-        {
-          ...prev[prev.length - 1],
-          content: [prev[prev.length - 1].content, detail.message].join(""),
-        },
-      ]);
+      setMessages((prev) => {
+        const updated = [
+          ...prev.slice(0, -1),
+          {
+            ...prev[prev.length - 1],
+            content: [prev[prev.length - 1].content, detail.message].join(""),
+          },
+        ];
+        messagesRef.current = updated;
+        return updated;
+      });
     } else {
       currentSenderRef.current = MessageSender.AVATAR;
-      setMessages((prev) => [
-        ...prev,
-        {
-          id: Date.now().toString(),
-          sender: MessageSender.AVATAR,
-          content: detail.message,
-        },
-      ]);
+      setMessages((prev) => {
+        const updated = [
+          ...prev,
+          {
+            id: Date.now().toString(),
+            sender: MessageSender.AVATAR,
+            content: detail.message,
+          },
+        ];
+        messagesRef.current = updated;
+        return updated;
+      });
     }
   };
 
   const handleEndMessage = () => {
+    const last = messagesRef.current[messagesRef.current.length - 1];
+    if (last) {
+      sendMessageToN8n(last.content, last.sender);
+    }
     currentSenderRef.current = null;
   };
 
