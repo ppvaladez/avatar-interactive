@@ -41,6 +41,7 @@ type StreamingAvatarContextProps = {
 
   messages: Message[];
   clearMessages: () => void;
+  addClientMessage: (content: string) => void;
   handleUserTalkingMessage: ({
     detail,
   }: {
@@ -79,6 +80,7 @@ const StreamingAvatarContext = React.createContext<StreamingAvatarContextProps>(
     setStream: () => {},
     messages: [],
     clearMessages: () => {},
+    addClientMessage: () => {},
     handleUserTalkingMessage: () => {},
     handleStreamingTalkingMessage: () => {},
     handleEndMessage: () => {},
@@ -126,6 +128,20 @@ const useStreamingAvatarMessageState = () => {
   const [messages, setMessages] = useState<Message[]>([]);
   const messagesRef = useRef<Message[]>([]);
   const currentSenderRef = useRef<MessageSender | null>(null);
+
+  const addClientMessage = (content: string) => {
+    const msg = {
+      id: Date.now().toString(),
+      sender: MessageSender.CLIENT,
+      content,
+    };
+    setMessages((prev) => {
+      const updated = [...prev, msg];
+      messagesRef.current = updated;
+      return updated;
+    });
+    sendMessageToN8n(content, MessageSender.CLIENT);
+  };
 
   const handleUserTalkingMessage = ({
     detail,
@@ -210,6 +226,7 @@ const useStreamingAvatarMessageState = () => {
       setMessages([]);
       currentSenderRef.current = null;
     },
+    addClientMessage,
     handleUserTalkingMessage,
     handleStreamingTalkingMessage,
     handleEndMessage,

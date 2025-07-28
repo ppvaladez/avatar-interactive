@@ -4,7 +4,7 @@ import { useCallback } from "react";
 import { useStreamingAvatarContext } from "./context";
 
 export const useTextChat = () => {
-  const { avatarRef } = useStreamingAvatarContext();
+  const { avatarRef, addClientMessage } = useStreamingAvatarContext();
 
   const sendMessage = useCallback(
     (message: string) => {
@@ -15,20 +15,20 @@ export const useTextChat = () => {
         taskMode: TaskMode.ASYNC,
       });
     },
-    [avatarRef],
+    [avatarRef, addClientMessage],
   );
 
   const sendMessageSync = useCallback(
     async (message: string) => {
       if (!avatarRef.current) return;
-
+      addClientMessage(message);
       return await avatarRef.current?.speak({
         text: message,
         taskType: TaskType.TALK,
         taskMode: TaskMode.SYNC,
       });
     },
-    [avatarRef],
+    [avatarRef, addClientMessage],
   );
 
   const repeatMessage = useCallback(
