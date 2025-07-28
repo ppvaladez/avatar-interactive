@@ -53,9 +53,40 @@ export const useStreamingAvatarSession = () => {
     [setSessionState, setStream],
   );
 
+  const handleConnectionQuality = useCallback(
+    ({ detail }: { detail: ConnectionQuality }) =>
+      setConnectionQuality(detail),
+    [setConnectionQuality],
+  );
+  const handleUserStart = useCallback(() => setIsUserTalking(true), [setIsUserTalking]);
+  const handleUserStop = useCallback(() => setIsUserTalking(false), [setIsUserTalking]);
+  const handleAvatarStart = useCallback(
+    () => setIsAvatarTalking(true),
+    [setIsAvatarTalking],
+  );
+  const handleAvatarStop = useCallback(
+    () => setIsAvatarTalking(false),
+    [setIsAvatarTalking],
+  );
+
   const stop = useCallback(async () => {
     avatarRef.current?.off(StreamingEvents.STREAM_READY, handleStream);
     avatarRef.current?.off(StreamingEvents.STREAM_DISCONNECTED, stop);
+    avatarRef.current?.off(
+      StreamingEvents.CONNECTION_QUALITY_CHANGED,
+      handleConnectionQuality,
+    );
+    avatarRef.current?.off(StreamingEvents.USER_START, handleUserStart);
+    avatarRef.current?.off(StreamingEvents.USER_STOP, handleUserStop);
+    avatarRef.current?.off(StreamingEvents.AVATAR_START_TALKING, handleAvatarStart);
+    avatarRef.current?.off(StreamingEvents.AVATAR_STOP_TALKING, handleAvatarStop);
+    avatarRef.current?.off(StreamingEvents.USER_TALKING_MESSAGE, handleUserTalkingMessage);
+    avatarRef.current?.off(
+      StreamingEvents.AVATAR_TALKING_MESSAGE,
+      handleStreamingTalkingMessage,
+    );
+    avatarRef.current?.off(StreamingEvents.USER_END_MESSAGE, handleEndMessage);
+    avatarRef.current?.off(StreamingEvents.AVATAR_END_MESSAGE, handleEndMessage);
     clearMessages();
     stopVoiceChat();
     setIsListening(false);
@@ -74,6 +105,14 @@ export const useStreamingAvatarSession = () => {
     clearMessages,
     setIsUserTalking,
     setIsAvatarTalking,
+    handleConnectionQuality,
+    handleUserStart,
+    handleUserStop,
+    handleAvatarStart,
+    handleAvatarStop,
+    handleUserTalkingMessage,
+    handleStreamingTalkingMessage,
+    handleEndMessage,
   ]);
 
   const start = useCallback(
@@ -98,21 +137,12 @@ export const useStreamingAvatarSession = () => {
       avatarRef.current.on(StreamingEvents.STREAM_DISCONNECTED, stop);
       avatarRef.current.on(
         StreamingEvents.CONNECTION_QUALITY_CHANGED,
-        ({ detail }: { detail: ConnectionQuality }) =>
-          setConnectionQuality(detail),
+        handleConnectionQuality,
       );
-      avatarRef.current.on(StreamingEvents.USER_START, () => {
-        setIsUserTalking(true);
-      });
-      avatarRef.current.on(StreamingEvents.USER_STOP, () => {
-        setIsUserTalking(false);
-      });
-      avatarRef.current.on(StreamingEvents.AVATAR_START_TALKING, () => {
-        setIsAvatarTalking(true);
-      });
-      avatarRef.current.on(StreamingEvents.AVATAR_STOP_TALKING, () => {
-        setIsAvatarTalking(false);
-      });
+      avatarRef.current.on(StreamingEvents.USER_START, handleUserStart);
+      avatarRef.current.on(StreamingEvents.USER_STOP, handleUserStop);
+      avatarRef.current.on(StreamingEvents.AVATAR_START_TALKING, handleAvatarStart);
+      avatarRef.current.on(StreamingEvents.AVATAR_STOP_TALKING, handleAvatarStop);
       avatarRef.current.on(
         StreamingEvents.USER_TALKING_MESSAGE,
         handleUserTalkingMessage,
@@ -139,11 +169,16 @@ export const useStreamingAvatarSession = () => {
       avatarRef,
       sessionState,
       setConnectionQuality,
+      handleConnectionQuality,
       setIsUserTalking,
+      handleUserStart,
+      handleUserStop,
       handleUserTalkingMessage,
       handleStreamingTalkingMessage,
       handleEndMessage,
       setIsAvatarTalking,
+      handleAvatarStart,
+      handleAvatarStop,
     ],
   );
 
