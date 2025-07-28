@@ -21,7 +21,6 @@ import { LoadingIcon } from "./Icons";
 import { MessageHistory } from "./AvatarSession/MessageHistory";
 
 import { AVATARS } from "@/app/lib/constants";
-import { useN8nDialog } from "./logic/useN8nDialog";
 
 const DEFAULT_CONFIG: StartAvatarRequest = {
   quality: AvatarQuality.Low,
@@ -43,7 +42,6 @@ function InteractiveAvatar() {
   const { initAvatar, startAvatar, stopAvatar, sessionState, stream } =
     useStreamingAvatarSession();
   const { startVoiceChat } = useVoiceChat();
-  const { loadNextMessage, resetDialog } = useN8nDialog();
 
   const [config, setConfig] = useState<StartAvatarRequest>(DEFAULT_CONFIG);
 
@@ -56,10 +54,7 @@ function InteractiveAvatar() {
       });
       const token = await response.text();
 
-      // console.log("Access Token:", token); // Log the token to verify
-      if (process.env.NODE_ENV !== "production") {
-        console.log("Access Token:", token);
-      }
+      console.log("Access Token:", token); // Log the token to verify
 
       return token;
     } catch (error) {
@@ -73,40 +68,38 @@ function InteractiveAvatar() {
       const newToken = await fetchAccessToken();
       const avatar = initAvatar(newToken);
 
-      // avatar.on(StreamingEvents.AVATAR_START_TALKING, (e) => {
-      //   console.log("Avatar started talking", e);
-      // });
-      // avatar.on(StreamingEvents.AVATAR_STOP_TALKING, (e) => {
-      //   console.log("Avatar stopped talking", e);
-      // });
-      // avatar.on(StreamingEvents.STREAM_DISCONNECTED, () => {
-      //   console.log("Stream disconnected");
-      // });
-      // avatar.on(StreamingEvents.STREAM_READY, (event) => {
-      //   console.log(">>>>> Stream ready:", event.detail);
-      // });
-      // avatar.on(StreamingEvents.USER_START, (event) => {
-      //   console.log(">>>>> User started talking:", event);
-      // });
-      // avatar.on(StreamingEvents.USER_STOP, (event) => {
-      //   console.log(">>>>> User stopped talking:", event);
-      // });
-      // avatar.on(StreamingEvents.USER_END_MESSAGE, (event) => {
-      //   console.log(">>>>> User end message:", event);
-      // });
-      // avatar.on(StreamingEvents.USER_TALKING_MESSAGE, (event) => {
-      //   console.log(">>>>> User talking message:", event);
-      // });
-      // avatar.on(StreamingEvents.AVATAR_TALKING_MESSAGE, (event) => {
-      //   console.log(">>>>> Avatar talking message:", event);
-      // });
-      // avatar.on(StreamingEvents.AVATAR_END_MESSAGE, (event) => {
-      //   console.log(">>>>> Avatar end message:", event);
-      // });
-      avatar.on(StreamingEvents.USER_END_MESSAGE, loadNextMessage);
+      avatar.on(StreamingEvents.AVATAR_START_TALKING, (e) => {
+        console.log("Avatar started talking", e);
+      });
+      avatar.on(StreamingEvents.AVATAR_STOP_TALKING, (e) => {
+        console.log("Avatar stopped talking", e);
+      });
+      avatar.on(StreamingEvents.STREAM_DISCONNECTED, () => {
+        console.log("Stream disconnected");
+      });
+      avatar.on(StreamingEvents.STREAM_READY, (event) => {
+        console.log(">>>>> Stream ready:", event.detail);
+      });
+      avatar.on(StreamingEvents.USER_START, (event) => {
+        console.log(">>>>> User started talking:", event);
+      });
+      avatar.on(StreamingEvents.USER_STOP, (event) => {
+        console.log(">>>>> User stopped talking:", event);
+      });
+      avatar.on(StreamingEvents.USER_END_MESSAGE, (event) => {
+        console.log(">>>>> User end message:", event);
+      });
+      avatar.on(StreamingEvents.USER_TALKING_MESSAGE, (event) => {
+        console.log(">>>>> User talking message:", event);
+      });
+      avatar.on(StreamingEvents.AVATAR_TALKING_MESSAGE, (event) => {
+        console.log(">>>>> Avatar talking message:", event);
+      });
+      avatar.on(StreamingEvents.AVATAR_END_MESSAGE, (event) => {
+        console.log(">>>>> Avatar end message:", event);
+      });
 
       await startAvatar(config);
-      await loadNextMessage();
 
       if (isVoiceChat) {
         await startVoiceChat();
@@ -118,7 +111,6 @@ function InteractiveAvatar() {
 
   useUnmount(() => {
     stopAvatar();
-    resetDialog();
   });
 
   useEffect(() => {
