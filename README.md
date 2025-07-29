@@ -33,6 +33,10 @@ To start your 'session' with a Interactive Avatar, first click the 'start' butto
 
 If you want to see a different Avatar or try a different voice, you can close the session and enter the IDs and then 'start' the session again. Please see below for information on where to retrieve different Avatar and voice IDs that you can use.
 
+### Troubleshooting
+
+Si al iniciar la demo obtienes un mensaje similar a `Error retrieving access token: Connect Timeout Error`, revisa tu conexión a internet. Asegúrate de que tu red permita acceder a `https://api.heygen.com` y que `HEYGEN_API_KEY` esté configurada correctamente en el archivo `.env`.
+
 ### Which Avatars can I use with this project?
 
 By default, there are several Public Avatars that can be used in Interactive Avatar. (AKA Interactive Avatars.) You can find the Avatar IDs for these Public Avatars by navigating to [labs.heygen.com/interactive-avatar](https://labs.heygen.com/interactive-avatar) and clicking 'Select Avatar' and copying the avatar id.

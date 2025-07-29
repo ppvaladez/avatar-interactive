@@ -23,8 +23,8 @@ export async function POST() {
     });
   } catch (error) {
     console.error("Error retrieving access token:", error);
-
-    return new Response("Failed to retrieve access token", {
+    const message = error instanceof Error ? error.message : String(error);
+    return new Response(`Failed to retrieve access token: ${message}`, {
       status: 500,
     });
   }
