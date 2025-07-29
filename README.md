@@ -37,6 +37,8 @@ If you want to see a different Avatar or try a different voice, you can close th
 
 Si al iniciar la demo obtienes un mensaje similar a `Error retrieving access token: Connect Timeout Error`, revisa tu conexión a internet. Asegúrate de que tu red permita acceder a `https://api.heygen.com` y que `HEYGEN_API_KEY` esté configurada correctamente en el archivo `.env`.
 
+Si tu red requiere un proxy HTTP/HTTPS, define las variables de entorno `HTTPS_PROXY` o `HTTP_PROXY` antes de iniciar la aplicación para que las peticiones puedan salir a internet.
+
 ### Which Avatars can I use with this project?
 
 By default, there are several Public Avatars that can be used in Interactive Avatar. (AKA Interactive Avatars.) You can find the Avatar IDs for these Public Avatars by navigating to [labs.heygen.com/interactive-avatar](https://labs.heygen.com/interactive-avatar) and clicking 'Select Avatar' and copying the avatar id.
