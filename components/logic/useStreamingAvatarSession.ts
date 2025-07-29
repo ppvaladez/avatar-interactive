@@ -2,13 +2,17 @@ import StreamingAvatar, {
   ConnectionQuality,
   StartAvatarRequest,
   StreamingEvents,
+  TaskMode,
+  TaskType,
 } from "@heygen/streaming-avatar";
 import { useCallback } from "react";
 
 import {
   StreamingAvatarSessionState,
   useStreamingAvatarContext,
+  MessageSender,
 } from "./context";
+import { fetchN8nReply } from "@/app/lib/n8n";
 import { useVoiceChat } from "./useVoiceChat";
 import { useMessageHistory } from "./useMessageHistory";
 
@@ -28,6 +32,7 @@ export const useStreamingAvatarSession = () => {
     handleStreamingTalkingMessage,
     handleEndMessage,
     clearMessages,
+    messages,
   } = useStreamingAvatarContext();
   const { stopVoiceChat } = useVoiceChat();
 
@@ -52,6 +57,24 @@ export const useStreamingAvatarSession = () => {
     },
     [setSessionState, setStream],
   );
+
+  const handleUserMessageComplete = useCallback(async () => {
+    if (!process.env.NEXT_PUBLIC_N8N_WEBHOOK_URL) return;
+    if (!avatarRef.current) return;
+    const last = [...messages].reverse().find((m) => m.sender === MessageSender.CLIENT);
+    if (!last) return;
+    try {
+      const reply = await fetchN8nReply(last.content);
+      await avatarRef.current.interrupt();
+      await avatarRef.current.speak({
+        text: reply,
+        taskType: TaskType.TALK,
+        taskMode: TaskMode.ASYNC,
+      });
+    } catch (e) {
+      console.error('Failed to fetch n8n reply', e);
+    }
+  }, [avatarRef, messages]);
 
   const stop = useCallback(async () => {
     avatarRef.current?.off(StreamingEvents.STREAM_READY, handleStream);
@@ -109,6 +132,9 @@ export const useStreamingAvatarSession = () => {
       });
       avatarRef.current.on(StreamingEvents.AVATAR_START_TALKING, () => {
         setIsAvatarTalking(true);
+        if (process.env.NEXT_PUBLIC_N8N_WEBHOOK_URL) {
+          avatarRef.current?.interrupt();
+        }
       });
       avatarRef.current.on(StreamingEvents.AVATAR_STOP_TALKING, () => {
         setIsAvatarTalking(false);
@@ -121,7 +147,10 @@ export const useStreamingAvatarSession = () => {
         StreamingEvents.AVATAR_TALKING_MESSAGE,
         handleStreamingTalkingMessage,
       );
-      avatarRef.current.on(StreamingEvents.USER_END_MESSAGE, handleEndMessage);
+      avatarRef.current.on(StreamingEvents.USER_END_MESSAGE, () => {
+        handleEndMessage();
+        handleUserMessageComplete();
+      });
       avatarRef.current.on(
         StreamingEvents.AVATAR_END_MESSAGE,
         handleEndMessage,
@@ -144,6 +173,7 @@ export const useStreamingAvatarSession = () => {
       handleStreamingTalkingMessage,
       handleEndMessage,
       setIsAvatarTalking,
+      handleUserMessageComplete,
     ],
   );
 
