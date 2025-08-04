@@ -7,17 +7,16 @@ export async function GET() {
     }
     const res = await fetch(N8N_WEBHOOK_URL, { method: "GET" });
     const json = await res.json();
-    console.log(json);
 
     if (!res.ok) {
       console.error(`Failed request to n8n with status ${res.status}`);
-      return new Response(json || "Failed to fetch from n8n", {
+      return new Response(JSON.stringify(json) || "Failed to fetch from n8n", {
         status: res.status,
-        headers: { "Content-Type": "text/plain" },
+        headers: { "Content-Type": "application/json" },
       });
     }
 
-    return new Response(json, {
+    return new Response(JSON.stringify(json), {
       status: 200,
       headers: { "Content-Type": "application/json" },
     });
